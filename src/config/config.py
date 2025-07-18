@@ -100,7 +100,9 @@ class AgentConfig:
             self.agent_types = [
                 "forecasting",
                 "anomaly_detection",
-                "markov_anomaly_detection", 
+                "markov_anomaly_detection",
+                "hmm_anomaly_detection",
+                "crf_anomaly_detection",
                 "classification",
                 "trend_analysis",
                 "seasonality_analysis"
