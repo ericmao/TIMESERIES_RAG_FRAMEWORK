@@ -62,9 +62,24 @@ class TimeSeriesConfig:
     anomaly_threshold: float = 0.95
     window_size: int = 10
     
+    # Markov chain anomaly detection
+    markov_time_intervals: List[int] = None  # [5, 30, 60, 720, 1440] minutes
+    markov_n_states: int = 10
+    markov_smoothing_factor: float = 0.01
+    markov_similarity_method: str = "kl_divergence"  # kl_divergence, cosine, euclidean, wasserstein
+    markov_reduction_method: str = "umap"  # umap, tsne
+    markov_umap_n_neighbors: int = 15
+    markov_umap_min_dist: float = 0.1
+    markov_tsne_perplexity: int = 30
+    markov_tsne_n_iter: int = 1000
+    
     # Classification
     num_classes: int = 5
     classification_threshold: float = 0.5
+    
+    def __post_init__(self):
+        if self.markov_time_intervals is None:
+            self.markov_time_intervals = [5, 30, 60, 720, 1440]  # 5min, 30min, 1hr, 12hr, 24hr
 
 @dataclass
 class AgentConfig:
@@ -84,7 +99,8 @@ class AgentConfig:
         if self.agent_types is None:
             self.agent_types = [
                 "forecasting",
-                "anomaly_detection", 
+                "anomaly_detection",
+                "markov_anomaly_detection", 
                 "classification",
                 "trend_analysis",
                 "seasonality_analysis"
