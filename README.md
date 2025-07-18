@@ -69,20 +69,118 @@
 
 ## 🏗️ 架構設計
 
-### 系統架構
+### 系統架構概覽
+
+```mermaid
+graph TB
+    subgraph "🌐 用戶介面"
+        UI[Web UI]
+        API[API Client]
+    end
+
+    subgraph "🚀 API 服務層"
+        FastAPI[FastAPI Server]
+    end
+
+    subgraph "🧠 智能代理層"
+        MA[Master Agent<br/>主協調器]
+        
+        subgraph "專門代理"
+            FA[Forecasting Agent<br/>預測代理]
+            AA[Anomaly Agent<br/>異常檢測代理]
+            CA[Classification Agent<br/>分類代理]
+        end
+    end
+
+    subgraph "🔍 RAG 引擎"
+        PM[Prompt Manager<br/>提示詞管理]
+        VE[Vector Engine<br/>向量引擎]
+        DB[ChromaDB<br/>向量資料庫]
+    end
+
+    subgraph "🤖 AI 模型層"
+        subgraph "語言模型"
+            GPT2[GPT-2]
+            DialoGPT[DialoGPT]
+        end
+        
+        subgraph "時間序列模型"
+            Prophet[Prophet]
+            NeuralProphet[Neural Prophet]
+        end
+        
+        subgraph "ML 模型"
+            IsolationForest[Isolation Forest]
+            ZScore[Z-Score]
+        end
+    end
+
+    subgraph "💾 數據存儲"
+        PostgreSQL[PostgreSQL]
+        FileSystem[File System]
+    end
+
+    %% 連接關係
+    UI --> FastAPI
+    API --> FastAPI
+    FastAPI --> MA
+    MA --> FA
+    MA --> AA
+    MA --> CA
+    
+    FA --> PM
+    AA --> PM
+    CA --> PM
+    
+    PM --> VE
+    VE --> DB
+    
+    FA --> Prophet
+    FA --> NeuralProphet
+    AA --> IsolationForest
+    AA --> ZScore
+    CA --> GPT2
+    CA --> DialoGPT
+    
+    MA --> PostgreSQL
+    MA --> FileSystem
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Master Agent  │    │  Forecasting    │    │  Anomaly       │
-│   (協調器)      │◄──►│  Agent          │    │  Detection      │
-│                 │    │                 │    │  Agent          │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Classification  │    │  RAG System     │    │  Model Pool     │
-│ Agent           │    │  (向量資料庫)   │    │  (多模型支援)   │
-│                 │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+
+### 數據流程
+
+```mermaid
+sequenceDiagram
+    participant U as 用戶
+    participant API as FastAPI
+    participant MA as Master Agent
+    participant FA as Forecasting Agent
+    participant AA as Anomaly Agent
+    participant CA as Classification Agent
+    participant RAG as RAG Engine
+
+    U->>API: 發送分析請求
+    API->>MA: 路由到主代理
+    
+    par 並行處理
+        MA->>FA: 預測分析
+        FA->>RAG: 獲取提示詞
+        FA->>FA: 執行預測
+        FA-->>MA: 返回預測結果
+    and
+        MA->>AA: 異常檢測
+        AA->>RAG: 獲取提示詞
+        AA->>AA: 執行異常檢測
+        AA-->>MA: 返回異常結果
+    and
+        MA->>CA: 模式分類
+        CA->>RAG: 獲取提示詞
+        CA->>CA: 執行分類
+        CA-->>MA: 返回分類結果
+    end
+
+    MA->>MA: 整合所有結果
+    MA-->>API: 返回綜合分析
+    API-->>U: 返回最終結果
 ```
 
 ### 核心組件
